@@ -14,12 +14,44 @@
         bubble.call(this, r, x, y);
         this.type = "blue";
         this.timer = null;
+        this.fast_resid = 3;   //先快速运行三秒
+        this.slow_resid = 2;   //后慢速运行俩秒
     };
     _blue_.prototype =new bubble();
     bubble.blue.prototype  = {
-        run :function () {
-            console.log("run");
+        fast_move : function (x_rang,y_rang) {
+            var _this = this;
+            clearInterval(_this.timer);
+            this.timer = setInterval(function () {
+                moveBubbleByFix(_this,x_rang,y_rang);
+            },30);
+            var _timer = setTimeout(function(){
+                clearTimeout(_timer);
+                clearInterval(_this.timer);
+                _this.slow_move(x_rang,y_rang);
+            },this.fast_resid*1000);
+        },
+        slow_move : function (x_rang,y_rang) {
+            var _this = this;
+            this.timer = setInterval(function () {
+                moveBubbleByFix(_this,x_rang,y_rang);
+            },50);
+            var _timer = setTimeout(function(){
+                clearInterval(_this.timer);
+                clearTimeout(_timer);
+            },this.slow_resid*1000);
+        },
+        init_resid : function () {
+            this.resid = 5;
         }
+    };
+
+    var moveBubbleByFix = function (_this,x_rang,y_rang) {
+        var prop = Math.abs(y_rang)/Math.abs(x_rang);
+        console.log("x: "+x_rang+"     y:"+y_rang);
+        _this.x += x_rang>0?2:-2;
+        _this.y += y_rang>0?2*(prop):-2*(prop);
+        console.log("new_x: "+_this.x+"     y:"+_this.y);
     };
 
 
@@ -53,22 +85,25 @@
             if(_y >= g_data.wrap.height - this.r) {_y = g_data.wrap.height - this.r;}
             this.x = _x;
             this.y = _y;
-            bubbelTounch();
+            bubbelTounch(g_data.pink,g_data.bule);
             // draw(this.r,_x,_y,"pink");
         }
     };
 
 
-    var bubbelTounch = function(){
-        for(var i=0;i<g_data.bule.length;i++){
-            var x_x = Math.abs(g_data.pink.x-g_data.bule[i].x);
-            var y_y = Math.abs(g_data.pink.y-g_data.bule[i].y)
+    var bubbelTounch = function(actBel,affectBels){
+        for(var i=0;i<affectBels.length;i++){
+            var x_x = Math.abs(actBel.x-affectBels[i].x);
+            var y_y = Math.abs(actBel.y-affectBels[i].y);
             var rang = Math.sqrt(x_x*x_x+y_y*y_y);
-            if(rang<g_data.bule[i].r+g_data.pink.r){
-                alert("碰到");
+            if(rang <= affectBels[i].r+actBel.r){       //俩球中心点的距离小于或等于俩球半径之和则视为碰撞
+                affectBels[i].fast_move(affectBels[i].x-actBel.x,affectBels[i].y-actBel.y)
             }
         }
     };
+
+
+
 
 
 
@@ -128,7 +163,7 @@
 })();
 
 
-
+// 程序初始方法
 (function () {
     var  data  = window.g_data= {"wrap":{}};
 
